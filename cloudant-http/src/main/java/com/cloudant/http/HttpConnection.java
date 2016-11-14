@@ -73,20 +73,7 @@ public class HttpConnection {
 
     private static final Logger logger = Logger.getLogger(HttpConnection.class.getCanonicalName());
 
-    private static final String USER_AGENT;
-
-    static {
-        String ua = "java-cloudant-http/unknown";
-        try {
-            Class clazz = Class.forName("com.cloudant.library.LibraryVersion");
-            Version version = (Version) clazz.newInstance();
-            ua = version.getUserAgentString();
-        } catch (Exception e) {
-            logger.log(Level.WARNING, "Could not determine version string using default" +
-                    " user-agent", e);
-        }
-        USER_AGENT = ua;
-    }
+    private static final String DEFAULT_USER_AGENT = "java-cloudant-http/unknown";
 
 
     private final String requestMethod;
@@ -268,7 +255,9 @@ public class HttpConnection {
         while (retry && numberOfRetries-- > 0) {
             connection = connectionFactory.openConnection(url);
 
-            connection.setRequestProperty("User-Agent", USER_AGENT);
+            // Set the default user-agent, consuming libraries are expected to set the UA via an
+            // interceptor, see UserAgentInterceptor
+            connection.setRequestProperty("User-Agent", DEFAULT_USER_AGENT);
 
             if (url.getUserInfo() != null) {
                 // Insert at position 0 in case another interceptor wants to overwrite the BasicAuth

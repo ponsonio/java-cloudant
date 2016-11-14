@@ -30,7 +30,7 @@ import com.cloudant.client.org.lightcouch.CouchDbException;
 import com.cloudant.client.org.lightcouch.NoDocumentException;
 import com.cloudant.client.org.lightcouch.PreconditionFailedException;
 import com.cloudant.http.interceptors.BasicAuthInterceptor;
-import com.cloudant.library.LibraryVersion;
+import com.cloudant.http.interceptors.UserAgentInterceptor;
 import com.cloudant.test.main.RequiresCloudant;
 import com.cloudant.test.main.RequiresCloudantService;
 import com.cloudant.test.main.RequiresDB;
@@ -114,8 +114,19 @@ public class CloudantClientTests {
      * Assert that the User-Agent header is of the expected form.
      */
     @Test
-    public void testUserAgentHeaderString() {
-        String userAgentHeader = new LibraryVersion().getUserAgentString();
+    public void testUserAgentHeaderString() throws Exception {
+
+        ClientBuilder builder = ClientBuilder.account("test");
+        Class clazz = builder.getClass();
+        Field interceptor = clazz.getDeclaredField("USER_AGENT_INTERCEPTOR");
+        interceptor.setAccessible(true);
+        UserAgentInterceptor userAgentInterceptor = (UserAgentInterceptor) interceptor.get(builder);
+        Class interceptorClazz = userAgentInterceptor.getClass();
+        Field uaField = interceptorClazz.getDeclaredField("userAgent");
+        uaField.setAccessible(true);
+        String userAgentHeader = (String) uaField.get(userAgentInterceptor);
+
+
         assertTrue("The value of the User-Agent header: " + userAgentHeader + " should match the " +
                         "format: " + userAgentFormat,
                 userAgentHeader.matches(userAgentRegex));
