@@ -42,3 +42,54 @@ stage('QA') {
         }
     }
 }
+
+// Publish the master branch
+stage('Publish') {
+    if (env.BRANCH_NAME == "master") {
+        node {
+            checkout scm // re-checkout to be able to git tag
+            unstash name: 'built'
+            // read the version name and determine if it is a release build
+            version = new File('VERSION').text.trim()
+            isReleaseVersion = !version.toUpperCase(Locale.ENGLISH).contains("SNAPSHOT")
+
+            // Upload using the ossrh creds (upload destination logic is in build.gradle)
+            withCredentials([usernamePassword(credentialsId: 'ossrh-creds', passwordVariable: 'OSSRH_PASSWORD', usernameVariable: 'OSSRH_USER'), usernamePassword(credentialsId: 'signing-creds', passwordVariable: 'KEY_PASSWORD', usernameVariable: 'KEY_ID'), file(credentialsId: 'signing-key', variable: 'SIGNING_FILE')]) {
+                sh './gradlew -Dsigning.keyId=$KEY_ID -Dsigning.password=$KEY_PASSWORD -Dsigning.secretKeyRingFile=$SIGNING_FILE -DossrhUsername=$OSSRH_USER -DossrhPassword=$OSSRH_PASSWORD upload'
+            }
+
+            // if it is a release build then do the git tagging
+            if (isReleaseVersion) {
+
+                // Read the CHANGES.md to get the tag message
+                changes = """"""
+                changes += readFile('CHANGES.md')
+                tagMessage = """"""
+                for (line in changes.readLines()) {
+                    if (!"".equals(line)) {
+                        // append the line to the tagMessage
+                        tagMessage = "${tagMessage}${line}\n"
+                    } else {
+                        break
+                    }
+                }
+
+                // Use git to tag the release at the version
+                try {
+                    // Awkward workaround until resolution of https://issues.jenkins-ci.org/browse/JENKINS-28335
+                    withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'github-token', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD']]) {
+                        sh "git config user.email \"nomail@hursley.ibm.com\""
+                        sh "git config user.name \"Jenkins CI\""
+                        sh "git config credential.username ${env.GIT_USERNAME}"
+                        sh "git config credential.helper '!echo password=\$GIT_PASSWORD; echo'"
+                        sh "git tag -a ${version} -m '${tagMessage}'"
+                        sh "git push origin ${version}"
+                    }
+                } finally {
+                    sh "git config --unset credential.username"
+                    sh "git config --unset credential.helper"
+                }
+            }
+        }
+    }
+}
