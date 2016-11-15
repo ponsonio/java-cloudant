@@ -35,4 +35,10 @@ For example because it requires an API change
         <Method name="get"/>
     </Match>
 
+    <Match>
+        <Bug code="REC" pattern="REC_CATCH_EXCEPTION"/>
+        <Class name="com.cloudant.http.interceptors.UserAgentInterceptor"/>
+        <Method name="&lt;init&gt;"/>
+    </Match>
+
 </FindBugsFilter>

@@ -45,7 +45,7 @@ public class UserAgentInterceptor implements HttpConnectionRequestInterceptor {
                 Class c = Class.forName("android.os.Build$VERSION");
                 runtimeVersion = String.valueOf(c.getField("SDK_INT").getInt(null));
             } catch (Exception e) {
-                runtimeVersion = "unknown";
+                runtimeVersion = "Unknown";
             }
         }
 
@@ -67,23 +67,20 @@ public class UserAgentInterceptor implements HttpConnectionRequestInterceptor {
     protected static String loadUA(ClassLoader loader, String filename){
         String ua = "java-cloudant";
         String version = "unknown";
-        final URL url = loader.getResource(filename);
+        final InputStream propStream = loader.getResourceAsStream(filename);
         final Properties properties = new Properties();
-        InputStream propStream = null;
         try {
-            properties.load((propStream = url.openStream()));
-            ua = properties.getProperty("user.agent.name", ua);
-            version = properties.getProperty("user.agent.version", version);
-        } catch (Exception ex) {
-            //swallow exception and keep using default values
-        } finally {
             if (propStream != null) {
                 try {
+                    properties.load(propStream);
+                } finally {
                     propStream.close();
-                } catch (IOException e) {
-                    //can't do anything else
                 }
             }
+            ua = properties.getProperty("user.agent.name", ua);
+            version = properties.getProperty("user.agent.version", version);
+        } catch (IOException e) {
+            // Swallow exception and use default values.
         }
 
         return String.format(Locale.ENGLISH, "%s/%s", ua,version);
