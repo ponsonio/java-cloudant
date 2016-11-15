@@ -73,9 +73,6 @@ public class HttpConnection {
 
     private static final Logger logger = Logger.getLogger(HttpConnection.class.getCanonicalName());
 
-    private static final String DEFAULT_USER_AGENT = "java-cloudant-http/unknown";
-
-
     private final String requestMethod;
     public final URL url;
     private final String contentType;
@@ -254,10 +251,6 @@ public class HttpConnection {
 
         while (retry && numberOfRetries-- > 0) {
             connection = connectionFactory.openConnection(url);
-
-            // Set the default user-agent, consuming libraries are expected to set the UA via an
-            // interceptor, see UserAgentInterceptor
-            connection.setRequestProperty("User-Agent", DEFAULT_USER_AGENT);
 
             if (url.getUserInfo() != null) {
                 // Insert at position 0 in case another interceptor wants to overwrite the BasicAuth
