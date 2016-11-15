@@ -16,8 +16,15 @@ package com.cloudant.http.interceptors;
 import com.cloudant.http.HttpConnectionInterceptorContext;
 import com.cloudant.http.HttpConnectionRequestInterceptor;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.Locale;
+import java.util.Properties;
+
 /**
- * Created by rhys on 14/11/2016.
+ * Created by Rhys Short on 14/11/2016.
+ * @api_private
  */
 public class UserAgentInterceptor implements HttpConnectionRequestInterceptor {
 
@@ -26,24 +33,70 @@ public class UserAgentInterceptor implements HttpConnectionRequestInterceptor {
 
     /**
      * Creates an UserAgentInterceptor
-     * @param libraryName First part of the UA string this should include a version number if
-     *                    appropriate eg java-cloudant/2.6.1
+     * @param loader The class loader from which to load the file.
+     * @param filepath The path to the resource.
      */
-    public UserAgentInterceptor(String libraryName){
+    public UserAgentInterceptor(ClassLoader loader, String filepath){
+        String prefix = UserAgentInterceptor.loadUA(loader, filepath);
+        String runtimeVersion = System.getProperty("java.version");
+        if (runtimeVersion.equals("0")){
+            // running on android.
+            try {
+                Class c = Class.forName("android.os.Build$VERSION");
+                runtimeVersion = String.valueOf(c.getField("SDK_INT").getInt(null));
+            } catch (Exception e) {
+                runtimeVersion = "unknown";
+            }
+        }
+
         this.userAgent =  String.format("%s/%s/%s/%s/%s",
-                libraryName,
-                System.getProperty("java.version"),
+                prefix,
+                runtimeVersion,
                 System.getProperty("java.vendor"),
                 System.getProperty("os.name"),
                 System.getProperty("os.arch"));
     }
 
+    /**
+     * Loads the properties file using the classloader provided. Creating a string from the properties
+     * "user.agent.name" and "user.agent.version".
+     * @param loader The class loader to use to load the resource.
+     * @param filename The name of the file to load.
+     * @return A string that represents the first part of the UA string eg java-cloudant/2.6.1
+     */
+    protected static String loadUA(ClassLoader loader, String filename){
+        String ua = "java-cloudant";
+        String version = "unknown";
+        final URL url = loader.getResource(filename);
+        final Properties properties = new Properties();
+        InputStream propStream = null;
+        try {
+            properties.load((propStream = url.openStream()));
+            ua = properties.getProperty("user.agent.name", ua);
+            version = properties.getProperty("user.agent.version", version);
+        } catch (Exception ex) {
+            //swallow exception and keep using default values
+        } finally {
+            if (propStream != null) {
+                try {
+                    propStream.close();
+                } catch (IOException e) {
+                    //can't do anything else
+                }
+            }
+        }
 
+        return String.format(Locale.ENGLISH, "%s/%s", ua,version);
+    }
 
     @Override
     public HttpConnectionInterceptorContext interceptRequest(HttpConnectionInterceptorContext
                                                                           context) {
         context.connection.getConnection().setRequestProperty("User-Agent", userAgent);
         return context;
+    }
+
+    public String getUserAgent(){
+        return this.userAgent;
     }
 }

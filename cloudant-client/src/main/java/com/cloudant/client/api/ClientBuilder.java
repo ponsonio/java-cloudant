@@ -19,7 +19,6 @@ import com.cloudant.client.internal.util.DeserializationTypes;
 import com.cloudant.client.internal.util.IndexDeserializer;
 import com.cloudant.client.internal.util.SecurityDeserializer;
 import com.cloudant.client.internal.util.ShardDeserializer;
-import com.cloudant.client.org.lightcouch.CouchDbClient;
 import com.cloudant.client.org.lightcouch.CouchDbException;
 import com.cloudant.client.org.lightcouch.CouchDbProperties;
 import com.cloudant.http.HttpConnectionInterceptor;
@@ -32,8 +31,6 @@ import com.cloudant.http.interceptors.TimeoutCustomizationInterceptor;
 import com.cloudant.http.interceptors.UserAgentInterceptor;
 import com.google.gson.GsonBuilder;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.Authenticator;
 import java.net.MalformedURLException;
 import java.net.PasswordAuthentication;
@@ -41,7 +38,6 @@ import java.net.URL;
 import java.security.Security;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
@@ -112,36 +108,9 @@ import javax.net.ssl.SSLSocketFactory;
 public class ClientBuilder {
 
 
-    private static final UserAgentInterceptor USER_AGENT_INTERCEPTOR;
-
-    //init the string, based on a properties file or fallback to some defaults
-    static {
-        //default to an unknown version java-cloudant-default, but hopefully generate something
-        //more specific from a properties file
-        String ua = "java-cloudant";
-        String version = "unknown";
-        final URL url = CouchDbClient.class.getClassLoader()
-                .getResource("META-INF/client.properties");
-        final Properties properties = new Properties();
-        InputStream propStream = null;
-        try {
-            properties.load((propStream = url.openStream()));
-            ua = properties.getProperty("user.agent.name", ua);
-            version = properties.getProperty("user.agent.version", version);
-        } catch (Exception ex) {
-            //swallow exception and keep using default values
-        } finally {
-            if (propStream != null) {
-                try {
-                    propStream.close();
-                } catch (IOException e) {
-                    //can't do anything else
-                }
-            }
-        }
-
-        USER_AGENT_INTERCEPTOR =  new UserAgentInterceptor(String.format("%s/%s", ua, version));
-    }
+    private static final UserAgentInterceptor USER_AGENT_INTERCEPTOR =
+            new UserAgentInterceptor(ClientBuilder.class.getClassLoader(),
+                    "META-INF/client.properties");
 
     /**
      * Default max of 6 connections

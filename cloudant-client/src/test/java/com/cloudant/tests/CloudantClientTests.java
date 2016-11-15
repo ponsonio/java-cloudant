@@ -116,17 +116,7 @@ public class CloudantClientTests {
     @Test
     public void testUserAgentHeaderString() throws Exception {
 
-        ClientBuilder builder = ClientBuilder.account("test");
-        Class clazz = builder.getClass();
-        Field interceptor = clazz.getDeclaredField("USER_AGENT_INTERCEPTOR");
-        interceptor.setAccessible(true);
-        UserAgentInterceptor userAgentInterceptor = (UserAgentInterceptor) interceptor.get(builder);
-        Class interceptorClazz = userAgentInterceptor.getClass();
-        Field uaField = interceptorClazz.getDeclaredField("userAgent");
-        uaField.setAccessible(true);
-        String userAgentHeader = (String) uaField.get(userAgentInterceptor);
-
-
+        String userAgentHeader = new UserAgentInterceptor(UserAgentInterceptor.class.getClassLoader(), "META-INF/client.properties").getUserAgent();
         assertTrue("The value of the User-Agent header: " + userAgentHeader + " should match the " +
                         "format: " + userAgentFormat,
                 userAgentHeader.matches(userAgentRegex));
