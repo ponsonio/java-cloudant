@@ -11,14 +11,13 @@
  * either express or implied. See the License for the specific language governing permissions
  * and limitations under the License.
  */
-package com.cloudant.http.interceptors;
+package com.cloudant.http.internal.interceptors;
 
 import com.cloudant.http.HttpConnectionInterceptorContext;
 import com.cloudant.http.HttpConnectionRequestInterceptor;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
 import java.util.Locale;
 import java.util.Properties;
 

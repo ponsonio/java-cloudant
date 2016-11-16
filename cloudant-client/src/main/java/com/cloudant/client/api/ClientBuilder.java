@@ -28,7 +28,7 @@ import com.cloudant.http.interceptors.CookieInterceptor;
 import com.cloudant.http.interceptors.ProxyAuthInterceptor;
 import com.cloudant.http.interceptors.SSLCustomizerInterceptor;
 import com.cloudant.http.interceptors.TimeoutCustomizationInterceptor;
-import com.cloudant.http.interceptors.UserAgentInterceptor;
+import com.cloudant.http.internal.interceptors.UserAgentInterceptor;
 import com.google.gson.GsonBuilder;
 
 import java.net.Authenticator;

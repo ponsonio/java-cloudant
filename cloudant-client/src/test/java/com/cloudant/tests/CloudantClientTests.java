@@ -30,7 +30,7 @@ import com.cloudant.client.org.lightcouch.CouchDbException;
 import com.cloudant.client.org.lightcouch.NoDocumentException;
 import com.cloudant.client.org.lightcouch.PreconditionFailedException;
 import com.cloudant.http.interceptors.BasicAuthInterceptor;
-import com.cloudant.http.interceptors.UserAgentInterceptor;
+import com.cloudant.http.internal.interceptors.UserAgentInterceptor;
 import com.cloudant.test.main.RequiresCloudant;
 import com.cloudant.test.main.RequiresCloudantService;
 import com.cloudant.test.main.RequiresDB;
@@ -60,7 +60,6 @@ import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.nio.charset.Charset;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
