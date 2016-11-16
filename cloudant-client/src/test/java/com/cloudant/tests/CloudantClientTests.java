@@ -49,12 +49,18 @@ import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.net.URL;
+import java.net.URLClassLoader;
+import java.nio.charset.Charset;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -105,8 +111,13 @@ public class CloudantClientTests {
     }
 
     // java-cloudant/n.n.n or java-cloudant/unknown followed by 4 groups of /anything
-    private final String userAgentRegex = "java-cloudant/(?:(?:\\d+.\\d+.\\d+)|(?:unknown))" +
+    private final String userAgentRegex = "java-cloudant/(?:(?:\\d+.\\d+.\\d+))" +
             "(?:/{1}[^/]+){4}";
+
+    private final String userAgentUnknownRegex = "java-cloudant/(?:(?:unknown))" +
+            "(?:/{1}[^/]+){4}";
+
+
     private final String userAgentFormat = "java-cloudant/version/jvm.version/jvm.vendor/os" +
             ".name/os.arch";
 
@@ -116,7 +127,32 @@ public class CloudantClientTests {
     @Test
     public void testUserAgentHeaderString() throws Exception {
 
+        // This doesn't read the a properties file, since the tests do not run from the published jars.
         String userAgentHeader = new UserAgentInterceptor(UserAgentInterceptor.class.getClassLoader(), "META-INF/client.properties").getUserAgent();
+        assertTrue("The value of the User-Agent header: " + userAgentHeader + " should match the " +
+                        "format: " + userAgentFormat,
+                userAgentHeader.matches(userAgentUnknownRegex));
+    }
+
+    @Test
+    public void testUserAgentHeaderStringFromFile() throws Exception {
+        // This doesn't read the a properties file, since the tests do not run from the published jars.
+        // Point to the built classes, it's a bit awkward but we need to load the class cleanly
+        File f = new File("../cloudant-http/build/classes/main/");
+        String userAgentHeader = new UserAgentInterceptor(new URLClassLoader(new URL[]{f.toURI().toURL()}){
+
+            @Override
+            public InputStream getResourceAsStream(String name) {
+                if (name.equals("META-INF/client.properties")){
+                    try {
+                        return new ByteArrayInputStream("user.agent.name=java-cloudant\nuser.agent.version=1.6.1".getBytes("UTF-8"));
+                    } catch (UnsupportedEncodingException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+                return super.getResourceAsStream(name);
+            }
+        }, "META-INF/client.properties").getUserAgent();
         assertTrue("The value of the User-Agent header: " + userAgentHeader + " should match the " +
                         "format: " + userAgentFormat,
                 userAgentHeader.matches(userAgentRegex));

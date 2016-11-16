@@ -38,14 +38,21 @@ public class UserAgentInterceptor implements HttpConnectionRequestInterceptor {
      */
     public UserAgentInterceptor(ClassLoader loader, String filepath){
         String prefix = UserAgentInterceptor.loadUA(loader, filepath);
-        String runtimeVersion = System.getProperty("java.version");
+        String runtimeVersion = System.getProperty("java.version", "Unknown");
         if (runtimeVersion.equals("0")){
             // running on android.
+            // since it may fail at runtime to get the SDK version, default to "Unknown" before
+            // attempting to get the SDK version.
+            runtimeVersion = "Unknown";
             try {
                 Class c = Class.forName("android.os.Build$VERSION");
                 runtimeVersion = String.valueOf(c.getField("SDK_INT").getInt(null));
-            } catch (Exception e) {
-                runtimeVersion = "Unknown";
+            } catch (IllegalAccessException e) {
+                // do nothing, just swallow.
+            } catch (NoSuchFieldException e) {
+                // do nothing, just swallow.
+            } catch (ClassNotFoundException e) {
+                // do nothing, just swallow.
             }
         }
 
