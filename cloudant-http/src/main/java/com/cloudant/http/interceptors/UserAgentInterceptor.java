@@ -71,8 +71,8 @@ public class UserAgentInterceptor implements HttpConnectionRequestInterceptor {
      * @param filename The name of the file to load.
      * @return A string that represents the first part of the UA string eg java-cloudant/2.6.1
      */
-    protected static String loadUA(ClassLoader loader, String filename){
-        String ua = "java-cloudant";
+    private static String loadUA(ClassLoader loader, String filename){
+        String ua = "cloudant-http";
         String version = "unknown";
         final InputStream propStream = loader.getResourceAsStream(filename);
         final Properties properties = new Properties();
