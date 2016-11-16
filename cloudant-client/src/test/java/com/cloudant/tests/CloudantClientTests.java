@@ -184,7 +184,7 @@ public class CloudantClientTests {
                     userAgentHeader);
             assertTrue("The value of the User-Agent header " + userAgentHeader + " on the request" +
                             " should match the format " + userAgentFormat,
-                    userAgentHeader.matches(userAgentRegex));
+                    userAgentHeader.matches(userAgentUnknownRegex));
         } finally {
             server.shutdown();
         }
