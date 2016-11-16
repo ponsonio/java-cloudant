@@ -157,7 +157,7 @@ public class HttpTest extends HttpFactoryParameterizedTest {
     @Category(RequiresCloudant.class)
     public void testCookieAuthWithoutRetry() throws IOException {
         CookieInterceptor interceptor = new CookieInterceptor(CloudantClientHelper.COUCH_USERNAME,
-                CloudantClientHelper.COUCH_PASSWORD, dbResource.get().getDBUri().toString());
+                CloudantClientHelper.COUCH_PASSWORD, clientResource.get().getBaseUri().toString());
 
         HttpConnection conn = new HttpConnection("POST", dbResource.get().getDBUri().toURL(),
                 "application/json");
@@ -192,8 +192,7 @@ public class HttpTest extends HttpFactoryParameterizedTest {
     @Test
     public void testCookieAuthWithPath() throws Exception {
         MockWebServer mockWebServer = new MockWebServer();
-        mockWebServer.enqueue(new MockResponse().setResponseCode(200).setBody("{\"ok\":true," +
-                "\"name\":\"root\",\"roles\":[\"_admin\"]}"));
+        mockWebServer.enqueue(MockWebServerResources.OK_COOKIE);
         mockWebServer.enqueue(MockWebServerResources.JSON_OK);
         CloudantClient client = ClientBuilder.url(mockWebServer.url("/pathex").url())
                 .username("user")
