@@ -251,12 +251,6 @@ public class CookieInterceptor implements HttpConnectionRequestInterceptor,
                 if (responseCode == 401) {
                     logger.severe("Credentials are incorrect, cookie authentication will not be" +
                             " attempted again by this interceptor object");
-                } else if (responseCode / 100 == 5) {
-                    logger.log(Level.SEVERE,
-                            "Failed to get cookie from server, response code {0}, cookie " +
-                                    "authentication will not be attempted again by this interceptor" +
-                                    " object",
-                            responseCode);
                 } else {
                     // catch any other response code
                     logger.log(Level.SEVERE,
