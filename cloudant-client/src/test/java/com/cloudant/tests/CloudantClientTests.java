@@ -113,7 +113,7 @@ public class CloudantClientTests {
     private final String userAgentRegex = "java-cloudant/(?:(?:\\d+.\\d+.\\d+))" +
             "(?:/{1}[^/]+){4}";
 
-    private final String userAgentUnknownRegex = "java-cloudant/(?:(?:unknown))" +
+    private final String userAgentUnknownRegex = "cloudant-http/(?:(?:unknown))" +
             "(?:/{1}[^/]+){4}";
 
 
