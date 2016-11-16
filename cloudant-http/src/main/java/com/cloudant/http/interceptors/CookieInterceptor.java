@@ -63,9 +63,9 @@ public class CookieInterceptor implements HttpConnectionRequestInterceptor,
 
     /**
      * Constructs a cookie interceptor.
-     *  @param username The username to use when getting the cookie
+     * @param username The username to use when getting the cookie
      * @param password The password to use when getting the cookie
-     * @param baseURL
+     * @param baseURL  The base URL to use when constructing an `_session` request.
      */
     public CookieInterceptor(String username, String password, String baseURL) {
 
@@ -80,6 +80,7 @@ public class CookieInterceptor implements HttpConnectionRequestInterceptor,
             throw new RuntimeException(e);
         } catch (MalformedURLException e) {
             // this should be a valid URL since the builder is passing it in
+            logger.log(Level.SEVERE, "Failed to create URL for _session endpoint", e);
             throw new RuntimeException(e);
         }
     }
@@ -252,22 +253,18 @@ public class CookieInterceptor implements HttpConnectionRequestInterceptor,
                             " attempted again by this interceptor object");
                 } else if (responseCode / 100 == 5) {
                     logger.log(Level.SEVERE,
-                            "Failed to get cookie from server, response code %s, cookie auth",
+                            "Failed to get cookie from server, response code {0}, cookie auth",
                             responseCode);
                 } else {
                     // catch any other response code
                     logger.log(Level.SEVERE,
-                            "Failed to get cookie from server, response code %s, " +
+                            "Failed to get cookie from server, response code {0}, " +
                                     "cookie authentication will not be attempted again",
                             responseCode);
                 }
             }
-        } catch (MalformedURLException e) {
-            logger.log(Level.SEVERE, "Failed to create URL for _session endpoint", e);
-        } catch (UnsupportedEncodingException e) {
-            logger.log(Level.SEVERE, "Failed to encode cookieRequest body", e);
-        } catch (IOException e) {
-            logger.log(Level.SEVERE, "Failed to read cookie response error stream", e);
+        }  catch (IOException e) {
+            logger.log(Level.SEVERE, "Failed to read cookie response", e);
         }
         return false;
     }
